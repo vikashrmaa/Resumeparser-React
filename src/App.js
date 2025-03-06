@@ -75,7 +75,7 @@ const App = () => {
         }}
       >
         <Typography
-          variant="h3"
+          variant="h2"
           align="center"
           gutterBottom
           sx={{
@@ -90,7 +90,7 @@ const App = () => {
         </Typography>
 
         <Typography
-          variant="h5"
+          variant="h4"
           align="center"
           gutterBottom
           sx={{
@@ -106,7 +106,16 @@ const App = () => {
       </Box>
 
       {/* Main Content */}
-      <Card sx={{ boxShadow: 3, borderRadius: 3, padding: 2, width: '100%', maxWidth: '600px', marginTop: '150px' }}>
+      <Card sx={{ 
+        boxShadow: 3, 
+        borderRadius: 3, 
+        padding: 2, 
+        width: '100%', 
+        maxWidth: '600px',
+        minHeight: '300', 
+        marginTop: '150px' 
+        }}
+        >
         <CardContent>
           {/* File Upload */}
           <FileUpload onFileUpload={handleFileUpload} />
