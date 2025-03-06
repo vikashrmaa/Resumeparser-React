@@ -56,19 +56,35 @@ const App = () => {
     <Box sx={{ padding: '20px', maxWidth: '600px', margin: 'auto' }}>
       {/* New Heading */}
       <Typography
-        variant="h3"
-        align="center"
-        gutterBottom
-        sx={{
-          fontWeight: 'bold',
-          background: 'linear-gradient(45deg, #90caf9, #f48fb1)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          marginBottom: '20px',
-        }}
-      >
-        Resume Parser created by Vikash Sharma
-      </Typography>
+  variant="h2"
+  align="center"
+  gutterBottom
+  sx={{
+    fontWeight: 'bold',
+    background: 'linear-gradient(45deg, #90caf9, #f48fb1)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    marginBottom: '5px',
+  }}
+>
+  ParsePro
+</Typography>
+
+<Typography
+  variant="h3"
+  align="center"
+  gutterBottom
+  sx={{
+    fontWeight: 'bold',
+    background: 'linear-gradient(45deg, #90caf9, #f48fb1)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    marginBottom: '20px',
+  }}
+>
+  Resume Parsing Redefined
+</Typography>
+
 
       <FileUpload onFileUpload={handleFileUpload} />
       {loading && (
