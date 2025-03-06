@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import FileUpload from './FileUpload';
 import axios from 'axios';
-import { Button, Typography, Box, CircularProgress, Card, CardContent } from '@mui/material';
+import { Button, Typography, Box, CircularProgress, Card, CardActionArea ,CardContent } from '@mui/material';
 import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
@@ -106,14 +106,17 @@ const App = () => {
       </Box>
 
       {/* Main Content */}
+      
       <Card sx={{ 
-        boxShadow: 3, 
+        boxShadow: 6, 
         borderRadius: 3, 
         padding: 2, 
         width: '100%', 
         maxWidth: '600px',
         minHeight: '300', 
-        marginTop: '150px' 
+        marginTop: '150px',
+        backgroundColor: 'rgba(255, 255, 255, 0)',
+        backdropFilter: 'blur(20px)',
         }}
         >
         <CardContent>
