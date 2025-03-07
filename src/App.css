@@ -21,6 +21,7 @@
   margin: 20px auto;
   max-width: 500px;
   background-color: #f9f9f9;
+  
 }
 
 .dropzone p {
@@ -81,3 +82,4 @@
   cursor: pointer;
   margin-top: 20px;
 }
+
