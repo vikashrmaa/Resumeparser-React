@@ -35,6 +35,10 @@ npm start
 
 Open your browser and go to http://localhost:3000.
 
+<img width="1470" alt="Screenshot 2025-03-07 at 7 28 37 PM" src="https://github.com/user-attachments/assets/64a9536e-9336-4e0d-ac97-4f23813c90f0" />
+<img width="1470" alt="Screenshot 2025-03-07 at 7 30 06 PM" src="https://github.com/user-attachments/assets/cc04054a-cc1f-4396-a27a-e3df71f2b924" />
+
+
 
 
 
