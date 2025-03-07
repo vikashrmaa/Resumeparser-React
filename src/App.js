@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import FileUpload from './FileUpload';
 import axios from 'axios';
-import { Button, Typography, Box, CircularProgress, Card, CardActionArea ,CardContent } from '@mui/material';
+import { Button, Typography, Box, CircularProgress, Card, CardActionArea, CardContent, TextField } from '@mui/material';
 import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
+import { saveAs } from 'file-saver'; // Import file-saver
 
 const App = () => {
-  const [keywords, setKeywords] = useState([]);
+  const [text, setText] = useState(''); // State to store raw text
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState('');
@@ -26,8 +27,13 @@ const App = () => {
           const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
           setUploadProgress(progress);
         },
+        responseType: 'blob', // Important: Set the response type to 'blob'
       });
-      setKeywords(response.data.keywords);
+
+      // Trigger file download
+      const blob = new Blob([response.data], { type: 'text/csv' });
+      saveAs(blob, 'resume_data.csv');
+
     } catch (error) {
       setError('Failed to upload file. Please try again.');
       console.error('Error uploading file:', error);
@@ -38,16 +44,16 @@ const App = () => {
   };
 
   const handleClear = () => {
-    setKeywords([]);
+    setText('');
     setFileName('');
   };
 
-  const downloadKeywords = () => {
-    const blob = new Blob([keywords.join('\n')], { type: 'text/plain' });
+  const downloadText = () => {
+    const blob = new Blob([text], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'keywords.txt';
+    link.download = 'extracted_text.txt';
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -68,7 +74,7 @@ const App = () => {
       <Box
         sx={{
           position: 'absolute',
-          top: '10%', // Moves the heading higher up
+          top: '10%',
           left: '50%',
           transform: 'translateX(-50%)',
           textAlign: 'center',
@@ -106,19 +112,19 @@ const App = () => {
       </Box>
 
       {/* Main Content */}
-      
-      <Card sx={{ 
-        boxShadow: 6, 
-        borderRadius: 3, 
-        padding: 2, 
-        width: '100%', 
-        maxWidth: '600px',
-        minHeight: '300', 
-        marginTop: '150px',
-        backgroundColor: 'rgba(255, 255, 255, 0)',
-        backdropFilter: 'blur(20px)',
+      <Card
+        sx={{
+          boxShadow: 6,
+          borderRadius: 3,
+          padding: 2,
+          width: '100%',
+          maxWidth: '600px',
+          minHeight: '300px',
+          marginTop: '150px',
+          backgroundColor: 'rgba(255, 255, 255, 0)',
+          backdropFilter: 'blur(20px)',
         }}
-        >
+      >
         <CardContent>
           {/* File Upload */}
           <FileUpload onFileUpload={handleFileUpload} />
@@ -143,21 +149,25 @@ const App = () => {
         </Typography>
       )}
 
-      {keywords.length > 0 && (
-        <Box sx={{ marginTop: '20px', textAlign: 'center' }}>
-          <Typography variant="h6">Extracted Keywords:</Typography>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            {keywords.map((keyword, index) => (
-              <li key={index}>{keyword}</li>
-            ))}
-          </ul>
+      {text && (
+        <Box sx={{ marginTop: '20px', textAlign: 'center', width: '100%', maxWidth: '600px' }}>
+          <Typography variant="h6">Extracted Text:</Typography>
+          <TextField
+            fullWidth
+            multiline
+            rows={10}
+            value={text}
+            variant="outlined"
+            sx={{ marginTop: '20px', backgroundColor: 'rgba(255, 255, 255, 0.8)' }}
+            InputProps={{ readOnly: true }}
+          />
           <Button
             variant="contained"
             color="success"
-            onClick={downloadKeywords}
+            onClick={downloadText}
             sx={{ marginTop: '20px', marginRight: '10px' }}
           >
-            Download Keywords
+            Download Text
           </Button>
           <Button
             variant="contained"

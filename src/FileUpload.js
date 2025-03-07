@@ -61,7 +61,7 @@ const dropzoneStyle = {
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
-  backgroundColor: 'rgba(255,255,255,0)',
+  backgroundColor: 'rgba(255, 255, 255, 0)',
   backdropFilter: 'blur(20px)',
   
 };
