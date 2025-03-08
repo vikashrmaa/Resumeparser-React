@@ -144,7 +144,23 @@ const App = () => {
       )}
 
       {fileName && (
-        <Typography variant="body1" align="center">
+        <Typography 
+          variant="body1"
+          align="center"
+          gutterBottom
+          sx={{
+            fontWeight: 'bold',
+            background: 'linear-gradient(45deg, #90caf9, #f48fb1)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            margin: '15px 0',
+            fontSize: '2rem', // Match h2 default size
+            fontFamily: 'Arial, sans-serif',
+            padding: '8px',
+            borderRadius: '4px',
+            textShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          }}
+        >
           Uploaded file: {fileName}
         </Typography>
       )}
