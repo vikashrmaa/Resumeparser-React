@@ -14,10 +14,11 @@ const FileUpload = ({ onFileUpload }) => {
     accept: {
       'application/pdf': ['.pdf'],
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+      'application/zip': ['.zip'], // Add ZIP support
     },
     maxFiles: 1,
     onDropRejected: () => {
-      alert('Only PDF and DOCX files are allowed.');
+      alert('Only PDF and DOCX & ZIP files are allowed.');
     },
   });
 

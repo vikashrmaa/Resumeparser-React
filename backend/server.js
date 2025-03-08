@@ -4,8 +4,10 @@ const pdfParse = require('pdf-parse');
 const mammoth = require('mammoth');
 const cors = require('cors');
 const fs = require('fs');
-const { Parser } = require('json2csv'); // Import json2csv
+const { Parser } = require('json2csv');
 const Groq = require('groq-sdk');
+const AdmZip = require('adm-zip');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -21,6 +23,7 @@ async function getGroqSummary(text) {
   2. You are an AI resume parser that strictly formats the output as shown below.
   3. No additional details—follow the format exactly.
   4. Carefully adhere to the instructions; your reputation is on the line.
+  5. For Projects shorten description and include up to 4 projects named project1, project2, etc.
 
   Output Format:
   {
@@ -31,16 +34,14 @@ async function getGroqSummary(text) {
     "email": "atharva@example.com",
     "contact_no": "1234567890",
     "cgpa": 9.67,
-    "projects": [
-      {
-        "name": "DocGenie",
-        "description": "Python-based chat application to interact with PDF documents using local LLMs."
-      },
-      {
-        "name": "ChatLogChain",
-        "description": "Secure decentralized chat application using blockchain and hashing for encryption."
-      }
-    ]
+    "project1": {
+      "name": "DocGenie",
+      "description": "Python-based chat application to interact with PDF documents using local LLMs."
+    },
+    "project2": {
+      "name": "ChatLogChain",
+      "description": "Secure decentralized chat application using blockchain and hashing for encryption."
+    }
   }
 
   Extracted Text:
@@ -56,61 +57,139 @@ async function getGroqSummary(text) {
 }
 
 app.post('/upload', upload.single('file'), async (req, res) => {
+  let dataArray = [];
+  let filePath = req.file?.path;
+  const mimetype = req.file?.mimetype;
+
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    const filePath = req.file.path;
-    let text = '';
+    // Handle ZIP File Processing
+    if (mimetype === 'application/zip') {
+      const zip = new AdmZip(filePath);
+      const zipEntries = zip.getEntries();
+      const extractDir = path.join(__dirname, 'uploads', `extracted_${Date.now()}`);
 
-    if (req.file.mimetype === 'application/pdf') {
-      const data = await pdfParse(fs.readFileSync(filePath));
-      text = data.text;
-    } else if (req.file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-      const result = await mammoth.extractRawText({ path: filePath });
-      text = result.value;
-    } else {
+      // Extract ZIP contents
+      fs.mkdirSync(extractDir, { recursive: true });
+      zip.extractAllTo(extractDir, true);
+
+      // Process each file in the ZIP
+      for (const entry of zipEntries) {
+        if (entry.isDirectory) continue;
+
+        const entryPath = path.join(extractDir, entry.entryName);
+        const ext = path.extname(entry.entryName).toLowerCase();
+
+        // Skip non-resume files
+        if (!['.pdf', '.docx'].includes(ext)) continue;
+
+        try {
+          // Extract text
+          let text = '';
+          if (ext === '.pdf') {
+            text = (await pdfParse(fs.readFileSync(entryPath))).text;
+          } else {
+            text = (await mammoth.extractRawText({ path: entryPath })).value;
+          }
+
+          // Get parsed data
+          const summary = await getGroqSummary(text);
+          const jsonData = JSON.parse(summary);
+
+          // Process projects
+          for (let i = 1; i <= 4; i++) {
+            const projectKey = `project${i}`;
+            if (jsonData[projectKey]) {
+              jsonData[`project${i}_name`] = jsonData[projectKey].name || '';
+              jsonData[`project${i}_description`] = jsonData[projectKey].description || '';
+              delete jsonData[projectKey];
+            } else {
+              jsonData[`project${i}_name`] = '';
+              jsonData[`project${i}_description`] = '';
+            }
+          }
+
+          dataArray.push(jsonData);
+        } catch (error) {
+          console.error(`Error processing ${entry.entryName}:`, error);
+        }
+      }
+
+      // Cleanup extracted files
+      fs.rmSync(extractDir, { recursive: true, force: true });
+      fs.unlinkSync(filePath); // Delete original ZIP
+    }
+    // Handle Single File Processing
+    else {
+      let text = '';
+
+      if (mimetype === 'application/pdf') {
+        const data = await pdfParse(fs.readFileSync(filePath));
+        text = data.text;
+      } else if (mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+        const result = await mammoth.extractRawText({ path: filePath });
+        text = result.value;
+      } else {
+        fs.unlinkSync(filePath);
+        return res.status(400).json({ error: 'Unsupported file type' });
+      }
+
+      const summary = await getGroqSummary(text);
+      const jsonData = JSON.parse(summary);
+
+      // Process projects
+      for (let i = 1; i <= 4; i++) {
+        const projectKey = `project${i}`;
+        if (jsonData[projectKey]) {
+          jsonData[`project${i}_name`] = jsonData[projectKey].name || '';
+          jsonData[`project${i}_description`] = jsonData[projectKey].description || '';
+          delete jsonData[projectKey];
+        } else {
+          jsonData[`project${i}_name`] = '';
+          jsonData[`project${i}_description`] = '';
+        }
+      }
+
+      dataArray.push(jsonData);
       fs.unlinkSync(filePath);
-      return res.status(400).json({ error: 'Unsupported file type' });
     }
 
-    const summary = await getGroqSummary(text);
-    fs.unlinkSync(filePath);
+    // Convert all data to CSV
+    const fields = [
+      'name', 'education', 'email', 'contact_no', 'cgpa',
+      'skills', 'certification',
+      'project1_name', 'project1_description',
+      'project2_name', 'project2_description',
+      'project3_name', 'project3_description',
+      'project4_name', 'project4_description'
+    ];
 
-    const jsonData = JSON.parse(summary);
+    dataArray.forEach(data => {
+      data.skills = Array.isArray(data.skills) ? data.skills.join(', ') : '';
+      data.certification = Array.isArray(data.certification) ? data.certification.join(', ') : '';
+    });
 
-    // Convert JSON data to CSV format
-    const fields = ['name', 'education', 'email', 'contact_no', 'cgpa', 'skills', 'certification', 'projects'];
     const json2csvParser = new Parser({ fields });
-    
-    // Convert skills, certification, and projects to string format
-    jsonData.skills = jsonData.skills.join(', ');
-    jsonData.certification = jsonData.certification.join(', ');
-    jsonData.projects = jsonData.projects.map(proj => `${proj.name}: ${proj.description}`).join(' | ');
+    const csvData = json2csvParser.parse(dataArray);
 
-    const csvData = json2csvParser.parse(jsonData);
-
-    // Save CSV to a temporary file
-    const csvFilePath = `uploads/resume_data_${Date.now()}.csv`;
+    // Send CSV response
+    const csvFilePath = path.join(__dirname, `resume_data_${Date.now()}.csv`);
     fs.writeFileSync(csvFilePath, csvData);
-
-    // Send the file as a response
     res.download(csvFilePath, 'resume_data.csv', (err) => {
       if (err) {
         console.error('File Download Error:', err);
         res.status(500).json({ error: 'Failed to download CSV' });
       }
-      // Delete the temporary file after download
       fs.unlinkSync(csvFilePath);
     });
 
   } catch (error) {
     console.error('Error:', error);
-    if (req.file) {
-      fs.unlinkSync(req.file.path);
-    }
-    res.status(500).json({ error: 'Failed to process file' });
+    if (filePath) fs.unlinkSync(filePath);
+    res.status(500).json({ error: 'Failed to process files' });
   }
 });
 
