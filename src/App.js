@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import FileUpload from './FileUpload';
 import axios from 'axios';
-import { Button, Typography, Box, CircularProgress, Card, CardActionArea, CardContent, TextField } from '@mui/material';
+import { Button, Typography, Box, CircularProgress, Card, CardContent, TextField } from '@mui/material';
 import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { saveAs } from 'file-saver'; // Import file-saver
@@ -12,6 +12,10 @@ const App = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState('');
   const [fileName, setFileName] = useState('');
+  
+  // State to manage API key input and storage
+  const [apiKey, setApiKey] = useState('');
+  const [apiKeyInput, setApiKeyInput] = useState('');
 
   const handleFileUpload = async (file) => {
     setError('');
@@ -19,6 +23,8 @@ const App = () => {
     setFileName(file.name);
     const formData = new FormData();
     formData.append('file', file);
+    // Use the API key from state
+    formData.append('apiKey', apiKey);
 
     try {
       const response = await axios.post('http://localhost:5001/upload', formData, {
@@ -111,7 +117,7 @@ const App = () => {
         </Typography>
       </Box>
 
-      {/* Main Content */}
+      {/* Main Content Card */}
       <Card
         sx={{
           boxShadow: 6,
@@ -126,8 +132,33 @@ const App = () => {
         }}
       >
         <CardContent>
-          {/* File Upload */}
-          <FileUpload onFileUpload={handleFileUpload} />
+          {/* If no API key has been set, prompt the user for it */}
+          {!apiKey ? (
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="h6" gutterBottom>
+                Enter Your API Key
+              </Typography>
+              <TextField
+                fullWidth
+                value={apiKeyInput}
+                onChange={(e) => setApiKeyInput(e.target.value)}
+                placeholder="Enter API Key"
+                variant="outlined"
+                margin="normal"
+              />
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => setApiKey(apiKeyInput)}
+                sx={{ marginTop: '10px' }}
+              >
+                Save API Key
+              </Button>
+            </Box>
+          ) : (
+            // Once the API key is set, display the file upload interface
+            <FileUpload onFileUpload={handleFileUpload} />
+          )}
         </CardContent>
       </Card>
 
@@ -154,7 +185,7 @@ const App = () => {
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             margin: '15px 0',
-            fontSize: '2rem', // Match h2 default size
+            fontSize: '2rem',
             fontFamily: 'Arial, sans-serif',
             padding: '8px',
             borderRadius: '4px',
