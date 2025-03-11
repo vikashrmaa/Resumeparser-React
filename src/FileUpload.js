@@ -30,20 +30,7 @@ const FileUpload = ({ onFileUpload }) => {
         alt="Upload Placeholder"
         style={gifStyle}
       />
-      <Typography
-        variant="h5"
-        align="center"
-        gutterBottom
-        sx={{
-          fontWeight: 'bold',
-          background: 'linear-gradient(45deg,rgba(111, 188, 250, 0),rgba(244, 143, 177, 0))',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          marginBottom: '20px',
-        }}
-      >
-            Placeholder
-      </Typography>
+      
       <Typography
         variant="h5"
         align="center"
@@ -56,9 +43,9 @@ const FileUpload = ({ onFileUpload }) => {
           marginBottom: '20px',
         }}
       >
-        Drop resume in PDF or DOCX Format here
+        Drop resume in PDF / DOCX or ZIP for batch processing.
       </Typography>
-      <Typography
+      {/* <Typography
         variant="h5"
         align="center"
         gutterBottom
@@ -71,7 +58,7 @@ const FileUpload = ({ onFileUpload }) => {
         }}
       >
         For Batch Processing drop a zip of resumes
-      </Typography>
+      </Typography> */}
     </div>
 
   );
