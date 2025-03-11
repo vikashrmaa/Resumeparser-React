@@ -12,11 +12,12 @@ require('dotenv').config();
 
 const app = express();
 const upload = multer({ dest: 'uploads/' });
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 app.use(cors({ origin: 'http://localhost:3000' }));
 
-async function getGroqSummary(text) {
+// Updated getGroqSummary to accept an API key as a parameter
+async function getGroqSummary(text, apiKey) {
+  const groq = new Groq({ apiKey });
   const promptString = `Strict Instructions:
 
   1. User provides extracted text from a resume.
@@ -60,6 +61,9 @@ app.post('/upload', upload.single('file'), async (req, res) => {
   let dataArray = [];
   let filePath = req.file?.path;
   const mimetype = req.file?.mimetype;
+  
+  // Read the API key from the form data
+  const apiKey = req.body.apiKey;
 
   try {
     if (!req.file) {
@@ -95,8 +99,8 @@ app.post('/upload', upload.single('file'), async (req, res) => {
             text = (await mammoth.extractRawText({ path: entryPath })).value;
           }
 
-          // Get parsed data
-          const summary = await getGroqSummary(text);
+          // Get parsed data with the provided API key
+          const summary = await getGroqSummary(text, apiKey);
           const jsonData = JSON.parse(summary);
 
           // Process projects
@@ -137,7 +141,8 @@ app.post('/upload', upload.single('file'), async (req, res) => {
         return res.status(400).json({ error: 'Unsupported file type' });
       }
 
-      const summary = await getGroqSummary(text);
+      // Get parsed data with the provided API key
+      const summary = await getGroqSummary(text, apiKey);
       const jsonData = JSON.parse(summary);
 
       // Process projects
